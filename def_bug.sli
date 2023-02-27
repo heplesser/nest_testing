@@ -1,0 +1,91 @@
+/*
+
+ Minimal reproducer for bug mentioned in #2167.
+
+ The code creates a network of 50 neurons with explicitly listed connections.
+ The "gcc" variable selects between connections generated with fixed-indegree using
+ the GCC random variate library (true) og using the Clang random variate library (false).
+ The source from gcc cause an error, those from clang work fine.
+
+ To run the test, run
+
+ nest_indirect def_bug.sli
+
+ This runs the code with 1 and 2 MPI processes and compares results.
+
+ To see the output of the code, run
+
+ mpirun -np X nest def_bug.sli
+
+ Hans Ekkehard Plesser, 2023-02-23
+
+*/
+
+(unittest) run
+/unittest using
+
+  /NE 50 def
+  /simtime 0.3 def
+  /gcc true def
+  
+  /neuron_params
+  <<
+      /tau_m      20.
+      /tau_syn_ex 0.5
+      /tau_syn_in 0.5
+      /t_ref      2.0
+      /E_L        0.0
+      /V_th       20.0
+      /V_reset    0.0
+      /C_m        250.
+      /I_e        600.
+   >> def
+
+    gcc
+    {
+      /sources [ 10 49 41 41 9 44 19 46 9 25 11 33 46 37 36 27 45 29 15 27 21 50 27 38 3 5 38 3 41 49 42 37 36 45 5 3 21 29 9 30 34 40 35 44 41 48 44 27 36 47 ] def
+    }
+    {
+      /sources [ 45 50 37 13 47 29 9 46 15 10 15 38 34 29 47 45 14 23 35 1 44 3 20 46 46 13 3 49 3 48 5 9 15 28 30 25 40 30 16 3 40 40 24 40 40 17 50 32 43 42 ] def
+    }
+    ifelse
+
+    /targets [ NE ] Range def
+
+/distributed_process_invariant_events_assert_or_die << /show_results true >> SetOptions
+
+[1 2]
+{
+
+    <<
+      /resolution  0.1
+      /total_num_virtual_procs 4
+    >> SetKernelStatus
+
+    /E_neurons /iaf_psc_alpha_ps NE neuron_params Create def
+    E_neurons { /k Set << /V_m 19. 1. NE div k mul add >> SetStatus } forallindexed
+
+    /exsr /spike_recorder << /time_in_steps true /record_to /memory /start 0.0 >> Create def
+    
+    [ sources targets ] { 1 arraystore exch 1 arraystore exch /one_to_one << /synapse_model /static_synapse /weight 20. /delay 0.1 >>  Connect } ScanThread
+
+    << /source [ 37 38 39 40 41 42 43 ] cvnodecollection >> GetConnections ==
+
+    E_neurons exsr Connect
+    
+    %simtime Simulate
+    0.1 Simulate
+    % E_neurons << /V_th 1e10 >> SetStatus
+    0.1 Simulate
+    % E_neurons << /V_th 20. >> SetStatus
+    0.1 Simulate
+
+    % get events, replace vectors with SLI arrays    
+    /ev exsr /events get def
+    ev keys { /k Set ev dup k get cva k exch put } forall
+    ev
+    
+} distributed_process_invariant_events_assert_or_die
+
+
+
