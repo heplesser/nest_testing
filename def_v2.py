@@ -25,7 +25,8 @@ def runner(sources, compress):
     nest.resolution = resolution
     nest.total_num_virtual_procs = 4
     nest.use_compressed_spikes = compress
-
+    nest.buffer_growth_extra = 0
+    
     p1 = nest.Create('parrot_neuron', 50)
     sg = nest.Create('spike_generator', params={'spike_times': [0.1]})
     sr = nest.Create('spike_recorder')
@@ -36,8 +37,11 @@ def runner(sources, compress):
     nest.Connect(sg, p1, syn_spec={'delay': resolution, 'receptor_type': 0})
     nest.Connect(p1, sr, syn_spec={'delay': resolution})
     
-    nest.Simulate(0.3)
-
+    nest.Simulate(0.2)
+    for k, v in nest.GetKernelStatus().items():
+        if k.startswith('buffer_'):
+            print(f'{k:25s}:{v:6}')
+    
     return pd.DataFrame.from_records(sr.events)
 
 

@@ -2,7 +2,6 @@
 
 import subprocess
 import pandas as pd
-import importlib
 import tempfile
 import pickle
 from pathlib import Path
@@ -11,8 +10,6 @@ import pickle
 import sys
 
 import nest
-
-print(__file__)
 
 def run_single(n_ranks, script, tmpdir):
     try:

@@ -16,8 +16,10 @@ def run_single(n_ranks, script, tmpdir, compress, source_set):
             res[rank] = pickle.load(pkl)
     return res
 
+script = 'def_v2.py'
+
+#@pytest.mark.parametrize('compress, source_set', [[True, 'good'], [True, 'bad']])
 def test_bug(compress=True, source_set='bad'):
-    script = 'def_v2.py'
     procs = [1, 2]
 
     with tempfile.TemporaryDirectory() as tmpdir:
