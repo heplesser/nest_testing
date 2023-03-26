@@ -37,11 +37,11 @@ def runner(sources, compress):
     nest.Connect(sg, p1, syn_spec={'delay': resolution, 'receptor_type': 0})
     nest.Connect(p1, sr, syn_spec={'delay': resolution})
     
-    nest.Simulate(0.2)
+    nest.Simulate(0.3)  # must be at least 0.3 to ensure spikes are delivered 
     for k, v in nest.GetKernelStatus().items():
         if k.startswith('buffer_'):
             print(f'{k:25s}:{v:6}')
-    
+    print(nest.GetConnections())
     return pd.DataFrame.from_records(sr.events)
 
 
@@ -68,5 +68,3 @@ if __name__ == '__main__':
 
     with open(Path(outdir)/f'{MPI.COMM_WORLD.size}-{MPI.COMM_WORLD.rank}', 'wb') as pkl:
         pickle.dump(res, pkl, pickle.HIGHEST_PROTOCOL)
-
-    

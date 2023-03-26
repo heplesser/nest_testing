@@ -16,7 +16,7 @@ def run_single(n_ranks, script, tmpdir, compress, source_set):
             res[rank] = pickle.load(pkl)
     return res
 
-script = 'def_v2.py'
+script = 'run_bad_connections.py'
 
 #@pytest.mark.parametrize('compress, source_set', [[True, 'good'], [True, 'bad']])
 def test_bug(compress=True, source_set='bad'):
