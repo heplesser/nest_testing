@@ -41,7 +41,6 @@ def runner(sources, compress):
     for k, v in nest.GetKernelStatus().items():
         if k.startswith('buffer_'):
             print(f'{k:25s}:{v:6}')
-    print(nest.GetConnections())
     return pd.DataFrame.from_records(sr.events)
 
 
