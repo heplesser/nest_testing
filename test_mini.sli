@@ -1,0 +1,6 @@
+<< /total_num_virtual_procs  2 >> SetKernelStatus
+/n /iaf_psc_alpha Create def
+n ShowStatus
+n n Connect
+<< >> GetConnections ==
+0.1 Simulate
