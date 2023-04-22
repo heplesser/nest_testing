@@ -1,11 +1,8 @@
 import pandas as pd
-import nest
-from mpi4py import MPI
 import pickle
 from pathlib import Path
 import sys
 
-nest.set_verbosity('M_ERROR')
 
 resolution = 0.1
 
@@ -21,11 +18,12 @@ good_sources = [45, 50, 37, 13, 47, 29, 9, 46, 15, 10, 15, 38, 34,
 
     
 def runner(sources, compress):
+    nest.set_verbosity('M_ERROR')
     nest.ResetKernel()
     nest.resolution = resolution
     nest.total_num_virtual_procs = 4
     nest.use_compressed_spikes = compress
-    nest.buffer_growth_extra = 0
+    #nest.buffer_growth_extra = 0
     
     p1 = nest.Create('parrot_neuron', 50)
     sg = nest.Create('spike_generator', params={'spike_times': [0.1]})
@@ -57,6 +55,8 @@ def checker(res):
 
 
 if __name__ == '__main__':
+    import nest
+
     print(sys.argv)
     assert len(sys.argv) == 4
     outdir = sys.argv[1]
@@ -65,5 +65,5 @@ if __name__ == '__main__':
     source_set = good_sources if sys.argv[3] == 'good' else bad_sources
     res = runner(source_set, compress)
 
-    with open(Path(outdir)/f'{MPI.COMM_WORLD.size}-{MPI.COMM_WORLD.rank}', 'wb') as pkl:
+    with open(Path(outdir)/f'{nest.num_processes}-{nest.Rank()}', 'wb') as pkl:
         pickle.dump(res, pkl, pickle.HIGHEST_PROTOCOL)

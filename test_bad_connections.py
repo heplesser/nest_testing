@@ -18,14 +18,16 @@ def run_single(n_ranks, script, tmpdir, compress, source_set):
 
 script = 'run_bad_connections.py'
 
-#@pytest.mark.parametrize('compress, source_set', [[True, 'good'], [True, 'bad']])
-def test_bug(compress=True, source_set='bad'):
+@pytest.fixture(scope='module')
+def mod():
+    return importlib.import_module(script.split('.')[0])
+
+@pytest.mark.parametrize('compress, source_set', [[True, 'good'], [True, 'bad']])
+def test_bug(mod, compress, source_set):
+#def test_bug1(mod, compress=True, source_set='good'):
     procs = [1, 2]
 
     with tempfile.TemporaryDirectory() as tmpdir:
         res = {n_ranks: run_single(n_ranks, script, tmpdir, compress, source_set) for n_ranks in procs}
 
-    mod = importlib.import_module(script.split('.')[0])
     mod.checker(res)
-
-    
